@@ -12,24 +12,31 @@ pipeline {
         //git branch: 'main', url: 'https://github.com/iam-veeramalla/Jenkins-Zero-To-Hero.git'
       }
     }
-    stage('Build and Test') {
-      steps {
-        sh 'ls -ltr'
-        // build the project and create a JAR file
-        sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn clean package'
-      }
-    }
-    stage('Static Code Analysis') {
-      environment {
-        SONAR_URL = "http://13.41.81.129:9000"
-      }
-      steps {
-        withCredentials([string(credentialsId: 'sonarqube', variable: 'sonartoken')]) {
-          sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn sonar:sonar -Dsonar.login=$sonartoken -Dsonar.host.url=${SONAR_URL}'
+
+  stage("Unit test"){
+            steps{
+                sh 'mvn test'
+            }
         }
-      }
-    }
-    stage('Build and Push Docker Image') {
+
+  stage("CheckStyle reports"){
+            steps{
+                sh 'mvn checkstyle:checkstyle'
+            }
+        }
+
+  stage ("SonarQube analysis"){
+            steps {
+                echo 'Starting SonarQube analysis...'
+                withSonarQubeEnv('SonarServer') {
+                    sh """mvn sonar:sonar \
+                          -Dsonar.projectKey=myJavaApp
+                          """
+                }
+            }
+        }
+    
+  stage('Build and Push Docker Image') {
       environment {
         DOCKER_IMAGE = "varmaaradhula/ultimate-cicd:${BUILD_NUMBER}"
         // DOCKERFILE_LOCATION = "java-maven-sonar-argocd-helm-k8s/spring-boot-app/Dockerfile"
