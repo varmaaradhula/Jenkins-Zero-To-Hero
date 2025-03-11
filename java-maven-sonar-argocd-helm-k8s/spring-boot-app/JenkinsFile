@@ -57,13 +57,22 @@ pipeline {
         environment {
             GIT_REPO_NAME = "Jenkins-Zero-To-Hero"
             GIT_USER_NAME = "varmaaradhula"
+            GIT_BRANCH = "main"
         }
         steps {
             withCredentials([sshUserPrivateKey(credentialsId: 'gitsshKey', keyFileVariable: 'SSH_KEY')]) {
                 sh '''
-                    # Clone the Git repo using SSH
+                    # Check if the repo already exists
+                  if [ -d "${GIT_REPO_NAME}/.git" ]; then
+                    echo "Repository exists. Pulling latest changes..."
+                    cd ${GIT_REPO_NAME}
+                    git reset --hard  # Reset any local changes
+                    git checkout ${GIT_BRANCH}  # Ensure we're on the correct branch
+                    git pull origin ${GIT_BRANCH}  # Pull latest changes
+                  else
                   git clone git@github.com:${GIT_USER_NAME}/${GIT_REPO_NAME}.git
                   cd ${GIT_REPO_NAME}
+                  fi
 
                    # Set Git user details
                   git config user.email "rkvarmaa@gmail.com"
