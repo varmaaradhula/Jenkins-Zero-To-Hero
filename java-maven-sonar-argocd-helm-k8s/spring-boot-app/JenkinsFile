@@ -78,9 +78,13 @@ pipeline {
                   git config user.email "rkvarmaa@gmail.com"
                   git config user.name "Varma Aradhula"
 
-                    # Update deployment file with new image tag
+                # Extract the previous build number (Assumes format: image: myrepo/myapp:<number>)
+                OLD_BUILD_NUMBER=$(grep -oP 'image: varmaaradhula/ultimate-cicd:\\K[0-9]+' java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml)
+
+                   # Update deployment file with new image tag
                     BUILD_NUMBER=${BUILD_NUMBER}
-                    sed -i'' -e "s/replaceImageTag/${BUILD_NUMBER}/g" java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
+                   echo "Replacing old build number ($OLD_BUILD_NUMBER) with new build number ($BUILD_NUMBER)"
+                    sed -i'' -e "s/$OLD_BUILD_NUMBER/${BUILD_NUMBER}/g" java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
 
                     # Commit and push changes
                     git add java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
